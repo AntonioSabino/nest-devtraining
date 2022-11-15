@@ -1,0 +1,29 @@
+GET http://localhost:3000/courses
+
+###
+
+GET http://localhost:3000/courses/2
+
+###
+
+POST http://localhost:3000/courses
+Content-Type: application/json
+
+{
+  "id": "2",
+  "name": "Angular",
+  "description": "Descrição do Angular.",
+  "tags": ["nodejs", "angular", "framework", "typescript"]
+}
+
+###
+
+PATCH http://localhost:3000/courses/2
+Content-Type: application/json
+
+{
+  "id": "2",
+  "name": "Angular",
+  "description": "Descrição completa do Angular.",
+  "tags": ["nodejs", "angular", "framework", "typescript"]
+}
