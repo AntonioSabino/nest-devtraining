@@ -1,43 +1,84 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { Course } from './entities/course.entity';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { CreateCourseDto } from './dto/create-course.dto';
+import { UpdateCourseDto } from './dto/update-course.dto';
+import { CourseEntity } from './entities/course.entity';
+import { TagEntity } from './entities/tag.entity';
 
 @Injectable()
 export class CoursesService {
-  private courses: Course[] = [
-    {
-      id: '1',
-      name: 'NestJS',
-      description:
-        'NestJS é um framework Node.js para construção de aplicações escaláveis.',
-      tags: ['nodejs', 'nestjs', 'framework', 'typescript'],
-    },
-  ];
+  constructor(
+    @InjectRepository(CourseEntity)
+    private readonly coursesRepository: Repository<CourseEntity>,
+
+    @InjectRepository(TagEntity)
+    private readonly tagsRepository: Repository<TagEntity>,
+  ) {}
 
   findAll() {
-    return this.courses;
+    return this.coursesRepository.find();
   }
 
-  findOne(id: string) {
-    const course = this.courses.find((course) => course.id === id);
+  async findOne(id: string) {
+    const course = await this.coursesRepository.findOne(id);
 
     if (!course) {
-      throw new HttpException(`Course #${id} not found`, HttpStatus.NOT_FOUND);
+      throw new NotFoundException(`Course #${id} not found`);
     }
 
     return course;
   }
 
-  create(createCourseDto: any) {
-    this.courses.push(createCourseDto);
+  async create(createCourseDto: CreateCourseDto) {
+    const tags = await Promise.all(
+      createCourseDto.tags.map((name) => this.preloadTagByName(name)),
+    );
+
+    const course = this.coursesRepository.create({
+      ...createCourseDto,
+      tags,
+    });
+    return this.coursesRepository.save(course);
   }
 
-  update(id: string, updateCourseDto: any) {
-    const courseIndex = this.courses.findIndex((course) => course.id === id);
-    this.courses[courseIndex] = updateCourseDto;
+  async update(id: string, updateCourseDto: UpdateCourseDto) {
+    const tags =
+      updateCourseDto.tags &&
+      (await Promise.all(
+        updateCourseDto.tags.map((name) => this.preloadTagByName(name)),
+      ));
+
+    const course = await this.coursesRepository.preload({
+      id: +id,
+      ...updateCourseDto,
+      tags,
+    });
+
+    if (!course) {
+      throw new NotFoundException(`Course #${id} not found`);
+    }
+
+    return this.coursesRepository.save(course);
   }
 
-  remove(id: string) {
-    const courseIndex = this.courses.findIndex((course) => course.id === id);
-    this.courses.splice(courseIndex, 1);
+  async remove(id: string) {
+    const course = await this.coursesRepository.findOne(id);
+
+    if (!course) {
+      throw new NotFoundException(`Course #${id} not found`);
+    }
+
+    return this.coursesRepository.remove(course);
+  }
+
+  private async preloadTagByName(name: string): Promise<TagEntity> {
+    const tag = await this.tagsRepository.findOne({ name });
+
+    if (tag) {
+      return tag;
+    }
+
+    return this.tagsRepository.create({ name });
   }
 }

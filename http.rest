@@ -10,20 +10,22 @@ POST http://localhost:3000/courses
 Content-Type: application/json
 
 {
-  "id": "2",
+  "name": "NestJS",
+  "description": "Descrição do NestJS.",
+  "tags": ["nodejs", "nestjs", "framework", "typescript"]
+}
+
+###
+
+PATCH http://localhost:3000/courses/3
+Content-Type: application/json
+
+{
   "name": "Angular",
-  "description": "Descrição do Angular.",
+  "description": "Descrição completa do Angular.",
   "tags": ["nodejs", "angular", "framework", "typescript"]
 }
 
 ###
 
-PATCH http://localhost:3000/courses/2
-Content-Type: application/json
-
-{
-  "id": "2",
-  "name": "Angular",
-  "description": "Descrição completa do Angular.",
-  "tags": ["nodejs", "angular", "framework", "typescript"]
-}
+DELETE http://localhost:3000/courses/2
