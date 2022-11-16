@@ -1,8 +1,8 @@
-GET http://localhost:3000/courses
+GET http://localhost:3001/courses
 
 ###
 
-GET http://localhost:3000/courses/3
+GET http://localhost:3001/courses/3
 
 ###
 
